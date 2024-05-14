@@ -29,15 +29,18 @@ class AuctionListing(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=3, choices=CATEGORY, default=BOOKS)
     price = models.DecimalField(max_digits=11, decimal_places=2, default =0.0)
-    image = models.ImageField(upload_to='images/', blank=False)
+    image = models.URLField(max_length=200, blank=False)
     published_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "seller":self.seller,
-            "description":self.description,
-            "image":self.image,
-            "timestamp": self.timestamp.strftime("%A | %I:%M %p | %d %B, %Y"),
-        }
+        return f'{self.title}: by {self.seller}'
+
+    # def __str__(self):
+    #     return {
+    #         "id": self.id,
+    #         "title": self.title,
+    #         "seller":self.seller,
+    #         "description":self.description,
+    #         "image":self.image,
+    #         "timestamp": self.published_date.strftime("%A | %I:%M %p | %d %B, %Y"),
+    #     }

@@ -10,7 +10,7 @@ class Auctionform(ModelForm):
     # image = forms.ImageField(upload_to='images/', blank=False)
     class Meta:
         model = AuctionListing
-        fields = ["title", "description", "category", "price","image"]
+        fields = ["title", "description", "category", "price", "image"]
         error_messages = {
             NON_FIELD_ERRORS: {
                 "unique_together": "%(model_name)s's %(field_labels)s are not unique.",

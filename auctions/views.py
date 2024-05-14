@@ -10,9 +10,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django import forms
 from .form import Auctionform
 
-
-@login_required(login_url="login")
+@login_required(login_url='login')
 def create_listing(request):
+    return render(request, "auctions/auction_list.html", {
+        'form': Auctionform()
+    })
+@login_required(login_url="login")
+def insert_listing(request):
     if request.method == "POST":
         form = Auctionform(request.POST)
         if form.is_valid():
@@ -21,7 +25,7 @@ def create_listing(request):
             category = form.cleaned_data["category"]
             price = form.cleaned_data["price"]
             image = form.cleaned_data["image"]
-            
+            print("---------------",price)
             auction = AuctionListing(
                 seller = User.objects.get(pk = request.user.id),
                 title = title,
@@ -29,14 +33,18 @@ def create_listing(request):
                 category = category,
                 image = image
             )
+            # auction = AuctionListing(user = request.User, **form.cleaned_data)
             auction.save()
+            return HttpResponseRedirect(reverse('index'))
         else:
             render(request, "auctions/auction_list.html",{'form':form})
     return render(request, "auctions/auction_list.html",{'form':Auctionform()})
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listings=AuctionListing.objects.all().order_by('published_date')
+    return render(request, "auctions/index.html",{"listings":listings})
+
 @csrf_exempt
 def auction_list (request):
     if request.method!="POST":
