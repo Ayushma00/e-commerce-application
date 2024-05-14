@@ -3,9 +3,10 @@
 {% block body %}
 
     <h2>Create Listing</h2>
-    <form action="{% url 'create_listing' %}" method="post"></form>
+    <form action="{% url 'insert_listing' %}" method="post">
     {% csrf_token %}
-    <div class="form-group mb-3">
+    {{form.as_p}}
+    {% comment %} <div class="form-group mb-3">
         <label for="id_title">{{ form.title.label }}:</label>
         {{ form.title }}
     </div>
@@ -25,8 +26,9 @@
         <label for="id_price">{{ form.price.label }}:</label>
         {{ form.price }}
     </div>
-
-    <button type="submit" class="btn btn-primary btn-new-blue" aria-label="submit">Submit</button>
+    <button type="submit" class="btn btn-primary btn-new-blue" aria-label="submit">Submit</button> {% endcomment %}
+    <input class="btn btn-primary" type="submit" value="Create">
+    
 </form> 
 </div> 
 
