@@ -1,9 +1,40 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
- {% for list in listings %}
- 
- {{list}}
- {% endfor %}
+<h2>Active Listings</h2>
+<div class="listings-container">
+    {% for item in listings %}
+    <div class="listing-item">
+        <h3 class="item-title font-weight-semibold">
+            <a href="{% url 'listing' item.id %}">
+                {{ item.title }}
+            </a>
+        </h3>
+        <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+            Description: </span>{{ item.description }}
+        </div>
+        <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+            Author: </span>{{ item.seller }}
+        </div>
+        {% if item.category %}
+            <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+                Category: </span>{{ item.category | title }}
+            </div>
+        {% else %}
+            <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+            Category: </span> Not listed.
+            </div>
+        {% endif %}
+        
+        {% if item.price %}
+            <div class="font-size-sm text-success mb-1"><span class="text-muted mr-2">Price: </span>${{ item.price }}</div>
+        {% else %}
+            <div class="font-size-sm text-danger mb-1"><span class="text-muted mr-2">Price: </span>Not specified</div>
+        {% endif %}
+
+        <img src="{{ item.image }}" alt="{{ item.title }}" class="item-image">
+        <p class="item-date">Listed on: {{ item.published_date }}</p>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

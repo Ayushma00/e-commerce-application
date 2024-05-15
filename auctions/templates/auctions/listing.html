@@ -1,0 +1,31 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="col-md-5">
+    <div class="project-info-box">
+        <h3>{{ item.title }}</h3>
+        <p class="text-muted mb-1">{{ item.description }}</p>
+    </div>
+
+    <div class="project-info-box">
+        <p class="pt-4 pb-2 border-bottom"><b>Author: </b> {{ item.seller }}</p>
+        <p class="pt-1 pb-2 border-bottom "><b>Current Bid: </b><span class="text-primary"></p>
+            {% if item.price %}
+                <p class="pt-1 pb-2 border-bottom"><b>Price: </b>${{ item.price }}
+                </p>
+            {% else %}
+                <p class="pt-1 pb-2 border-bottom"><b>Price: </b>Not Specified</p>
+            {% endif %}
+        <p class="pt-1 pb-2 border-bottom"><b>Created at: </b> {{ item.published_date }}</p>
+        
+        {% if item.category %}
+            <p class="pt-1 pb-2 border-bottom"><b>Category: </b> {{ item.category | title }}</p>
+        {% else %}
+            <p class="pt-1 pb-2 border-bottom"><b>Category: </b> Not Listed.</p>
+        {% endif %}
+        <div class="col-md-7">
+            <img src="{{ item.image }}" class="rounded pb-2"
+                 style="width: 100%; max-height: 500px; object-fit: contain;">
+        </div>
+    </div>
+{% endblock %}
