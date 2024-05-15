@@ -11,14 +11,14 @@
             </a>
         </h3>
         <div class="font-size-sm mb-1"><span class="text-muted mr-2">
-            Description: </span>{{ item.description }}
+            Description: </span>{{ item.description |truncatewords:30 }}
         </div>
         <div class="font-size-sm mb-1"><span class="text-muted mr-2">
             Author: </span>{{ item.seller }}
         </div>
         {% if item.category %}
             <div class="font-size-sm mb-1"><span class="text-muted mr-2">
-                Category: </span>{{ item.category | title }}
+                Category: </span>{{ item.get_category_display | title }}
             </div>
         {% else %}
             <div class="font-size-sm mb-1"><span class="text-muted mr-2">
