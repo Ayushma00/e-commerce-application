@@ -35,12 +35,8 @@ class AuctionListing(models.Model):
     def __str__(self):
         return f'{self.title}: by {self.seller}'
 
-    # def __str__(self):
-    #     return {
-    #         "id": self.id,
-    #         "title": self.title,
-    #         "seller":self.seller,
-    #         "description":self.description,
-    #         "image":self.image,
-    #         "timestamp": self.published_date.strftime("%A | %I:%M %p | %d %B, %Y"),
-    #     }
+class Watchlist(models.Model):
+    auction = models.ForeignKey(AuctionListing, on_delete=models.CASCADE,default="auction")
+    seller = models.ForeignKey(User, on_delete=models.CASCADE,default="watchlist")
+    def __str__(self):
+        return f'{self.auction}: by {self.seller} watchlist'

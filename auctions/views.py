@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 import json
-from .models import User, AuctionListing
+from .models import User, AuctionListing, Watchlist
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 from .form import Auctionform
@@ -25,7 +25,6 @@ def insert_listing(request):
             category = form.cleaned_data["category"]
             price = form.cleaned_data["price"]
             image = form.cleaned_data["image"]
-            print("---------------",price)
             auction = AuctionListing(
                 seller = User.objects.get(pk = request.user.id),
                 title = title,
@@ -41,6 +40,11 @@ def insert_listing(request):
             render(request, "auctions/auction_list.html",{'form':form})
     return render(request, "auctions/auction_list.html",{'form':Auctionform()})
 
+@login_required(login_url="login")
+def watchlist(request):
+
+    return HttpResponse("good")
+
 
 def index(request):
     listings=AuctionListing.objects.all().order_by('published_date')
@@ -49,8 +53,22 @@ def index(request):
 def listing(request,id ):
     current_item=AuctionListing.objects.get(pk =id)
     print(current_item)
+    if request.user.is_authenticated:
+        watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id))
+        print(watchlist_item)
+        if watchlist_item is not None:
+            on_watchlist = True
+            print("IN the watchlist")
+        else:
+            on_watchlist = False
+            print("Not in the watch list")
+    else:
+        on_watchlist = False
+        print("not authenticate")
+
     return render(request,"auctions/listing.html",{
-        "item":current_item
+        "item":current_item,
+        "on_watchlist": on_watchlist
     })
 @csrf_exempt
 def auction_list (request):
