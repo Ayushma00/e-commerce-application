@@ -31,6 +31,7 @@ def insert_listing(request):
                 title = title,
                 description = description,
                 category = category,
+                price = price,
                 image = image
             )
             # auction = AuctionListing(user = request.User, **form.cleaned_data)
@@ -45,6 +46,12 @@ def index(request):
     listings=AuctionListing.objects.all().order_by('published_date')
     return render(request, "auctions/index.html",{"listings":listings})
 
+def listing(request,id ):
+    current_item=AuctionListing.objects.get(pk =id)
+    print(current_item)
+    return render(request,"auctions/listing.html",{
+        "item":current_item
+    })
 @csrf_exempt
 def auction_list (request):
     if request.method!="POST":
