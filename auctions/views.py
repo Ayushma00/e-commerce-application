@@ -42,19 +42,61 @@ def insert_listing(request):
 
 @login_required(login_url="login")
 def watchlist(request):
+    if request.method == "POST":
+        print(request.POST)
+        item_id=request.POST.get("auction_id")
+        print(item_id)
+        try:
+            auction = AuctionListing.objects.get(pk =item_id)
+            user = User.objects.get(pk = request.user.id)
+        except AuctionListing.DoesNotExist:
+            return render(request, "auctions/error_handling.html", {
+                "code": 404,
+                "message": "Auction id doesn't exist"
+            })
+        if request.POST.get("on_watchlist") == "True":
+            watchlist_item_delete = Watchlist.objects.filter(
+                seller = user,
+                auction = auction,
+            )
+            watchlist_item_delete.delete()
+        else:
+            try:
+                watchlist_item = Watchlist(
+                    auction = auction,
+                    seller = user
+                    
+                )
+                watchlist_item.save()
+            except IntegrityError:
+                return render(request, "auctions/error_handling.html", {
+                    "code": 400,
+                    "message": "Auction is already on your watchlist"
+                })
+        # return HttpResponseRedirect("/"+item_id)
+    print(User.objects.get(id=request.user.id))
+    watchlist_auctions_ids = User.objects.get(id=request.user.id).Watchlist.values_list("auction")
+    watchlist_items = AuctionListing.objects.filter(id__in=watchlist_auctions_ids, closed=False)
 
-    return HttpResponse("good")
-
+    return render(request, "auctions/watchlist.html", {
+        "watchlist_items": watchlist_items
+    })
 
 def index(request):
     listings=AuctionListing.objects.all().order_by('published_date')
     return render(request, "auctions/index.html",{"listings":listings})
 
 def listing(request,id ):
-    current_item=AuctionListing.objects.get(pk =id)
+    try:
+        current_item=AuctionListing.objects.get(pk =id)
+    except AuctionListing.DoesNotExist:
+        return render(request, "auctions/error_handling.html", {
+            "code": 404,
+            "message": "Auction id doesn't exist"
+        })
     print(current_item)
     if request.user.is_authenticated:
-        watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id))
+        watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id)).first()
         print(watchlist_item)
         if watchlist_item is not None:
             on_watchlist = True
@@ -65,11 +107,15 @@ def listing(request,id ):
     else:
         on_watchlist = False
         print("not authenticate")
-
+    print("---",on_watchlist)
     return render(request,"auctions/listing.html",{
         "item":current_item,
         "on_watchlist": on_watchlist
     })
+
+
+
+
 @csrf_exempt
 def auction_list (request):
     if request.method!="POST":
