@@ -5,10 +5,10 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 import json
-from .models import User, AuctionListing, Watchlist
+from .models import User, AuctionListing, Watchlist, Bid
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
-from .form import Auctionform
+from .form import Auctionform, Bidform
 
 @login_required(login_url='login')
 def create_listing(request):
@@ -39,6 +39,27 @@ def insert_listing(request):
         else:
             render(request, "auctions/auction_list.html",{'form':form})
     return render(request, "auctions/auction_list.html",{'form':Auctionform()})
+
+
+@login_required(login_url="login")
+def insert_bid(request):
+    bid_form = Bidform(request.POST)
+    print("Bid Form",bid_form)
+    if bid_form.is_valid():
+            bid_price = bid_form.cleaned_data["bid_price"]
+
+            bid_item = Bid(
+                bidder = User.objects.get(pk = request.user.id),
+                bid_price = bid_price,
+                auction = AuctionListing.objects.get(pk = request.auction.id)
+            )
+            # auction = AuctionListing(user = request.User, **form.cleaned_data)
+            bid_item.save()
+            return HttpResponseRedirect(reverse('listing'+(request.auction.id)))
+    else:
+            render(request, "auctions/listing.html",{'form':bid_form})
+    return render(request, "auctions/listing.html",{'form':Bidform()})
+
 
 @login_required(login_url="login")
 def watchlist(request):
@@ -95,10 +116,26 @@ def listing(request,id ):
     else:
         on_watchlist = False
         print("not authenticate")
-    print("---",on_watchlist)
+    if "bid" in request.POST:
+        bid_form = Bidform(request.POST)
+        if bid_form.is_valid():
+                bid_price = bid_form.cleaned_data["bid_price"]
+                print("Bid price", bid_price)
+                if bid_price < 0:                 
+                    message = "You must enter a valid bid."
+                my_bid = Bid(user=request.user, auction=current_item, bid_price=bid_price) 
+                my_bid.save()
+                return render(request, "auctions/listing.html", {
+                "item": current_item,
+                "bidform": Bidform(),
+                "watchlist": on_watchlist
+            })                     
+
+
     return render(request,"auctions/listing.html",{
         "item":current_item,
-        "on_watchlist": on_watchlist
+        "on_watchlist": on_watchlist,
+        "bidform": Bidform(),
     })
 
 

@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django.core.exceptions import NON_FIELD_ERRORS
-from .models import User, AuctionListing
+from .models import User, AuctionListing, Bid
 
 class Auctionform(ModelForm):
     # title = forms.CharField(label="Title",max_length=100, blank = False)
@@ -11,6 +11,16 @@ class Auctionform(ModelForm):
     class Meta:
         model = AuctionListing
         fields = ["title", "description", "category", "price", "image"]
+        error_messages = {
+            NON_FIELD_ERRORS: {
+                "unique_together": "%(model_name)s's %(field_labels)s are not unique.",
+            }
+        }
+
+class Bidform(ModelForm):
+    class Meta:
+        model = Bid
+        fields = ["bid_price"]
         error_messages = {
             NON_FIELD_ERRORS: {
                 "unique_together": "%(model_name)s's %(field_labels)s are not unique.",

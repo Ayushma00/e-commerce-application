@@ -39,4 +39,14 @@ class Watchlist(models.Model):
     auction = models.ForeignKey(AuctionListing, on_delete=models.CASCADE,default="auction")
     seller = models.ForeignKey(User, on_delete=models.CASCADE,default="watchlist")
     def __str__(self):
-        return f'{self.auction}: by {self.seller} watchlist'
+        return f'{self.auction.title}: by {self.seller} watchlist'
+    
+
+class Bid(models.Model):
+    auction = models.ForeignKey(AuctionListing, on_delete=models.CASCADE,default="auction")
+    user = models.ForeignKey(User, on_delete=models.CASCADE,default="bidder")
+    bid_price = models.DecimalField(max_digits=11, decimal_places=2, default =0.0)
+    bid_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user} bid {self.auction.title} for {self.bid_price}'
