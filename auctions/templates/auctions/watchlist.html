@@ -1,0 +1,68 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="wl_frame">
+        <div>
+        </div>
+        <div class="wl_box">
+
+            <h2>Watchlist</h2>
+
+            {% if not watchlist_items %}
+                No items are currently on your watchlist.
+            {% else %}            
+
+                    {% for item in watchlist_items %}
+                        <div class="wl_title">
+
+                            <form action="{% url 'watchlist' %}" method="post">
+                                {% csrf_token %}      
+                                <div class="listing-item">
+                                        <input class="btn btn-danger" type="submit" name="remove" value="Remove from watchlist">
+                                        <input type="hidden" name="on_watchlist" value="True">
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <input type="hidden" name="auction_id" value="{{ item.auction.id }}">
+                                    <h3 class="item-title font-weight-semibold">
+                                        <a href="listing/{{ item.auction.id }}">
+                                            {{ item.auction.title }}
+                                        </a>
+                                    </h3>
+                                    <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+                                        Description: </span>{{ item.auction.description |truncatewords:30 }}
+                                    </div>
+                                    <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+                                        Author: </span>{{ item.auction.seller }}
+                                    </div>
+                                    {% if item.auction.category %}
+                                        <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+                                            Category: </span>{{ item.auction.get_category_display | title }}
+                                        </div>
+                                    {% else %}
+                                        <div class="font-size-sm mb-1"><span class="text-muted mr-2">
+                                        Category: </span> Not listed.
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if item.auction.price %}
+                                        <div class="font-size-sm text-success mb-1"><span class="text-muted mr-2">Price: </span>${{ item.auction.price }}</div>
+                                    {% else %}
+                                        <div class="font-size-sm text-danger mb-1"><span class="text-muted mr-2">Price: </span>Not specified</div>
+                                    {% endif %}
+                            
+                                    <img src="{{ item.auction.image }}" alt="{{ item.auction.title }}" class="item-image">
+                                    <p class="item-date">Listed on: {{ item.auction.published_date }}</p>
+                                </div>
+                                
+                                
+                            </form> 
+                                                           
+                        </div>                     
+                    {% endfor %}
+
+            {% endif %}
+
+        </div>
+        <div>
+        </div>
+    </div>
+{% endblock %}
