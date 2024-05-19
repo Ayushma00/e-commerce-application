@@ -45,5 +45,30 @@
                  style="width: 100%; max-height: 500px; object-fit: contain;">
         </div>
 
+{% comment %} BID {% endcomment %}
+<div class="list-group-item text-muted">
+    {% if bid_amount != 0 %}
+        <small>{{ bid_amount }} bid(s) so far. {{ bid_message }}</small>
+    {% else %}
+        <small>No bids so far.</small>
+    {% endif %}
+</div>
+{% if user.id == item.seller.id %}
+        <form action="{% url 'close_bid' auction_id=item.id %}" method="POST">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-danger" value="Close auction" name="close_auction">
+        </form>
+    {% endif %}
+{% if user.is_authenticated and user.id != item.seller.id %}
+<form action="{% url 'bid'%}" method="post">
+    {% csrf_token %}
+    {{bidform.as_p}}
+    <input class="btn btn-primary" type="submit" name="bid" value="Place Your Bid">
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <input type="hidden" name="auction_id" value="{{ item.id }}">
+</form>
+
+{% endif %}
+
     </div>
 {% endblock %}
