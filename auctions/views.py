@@ -70,7 +70,8 @@ def insert_bid(request):
                 })
             
             highest_bid = Bid.objects.filter(auction=auction).order_by('-bid_price').first()
-            if highest_bid is None or bid_price > highest_bid.bid_price:
+           
+            if  bid_price > auction.price:
                 # Add new bid to db
                 new_bid = Bid(auction=auction, user=user, bid_price=bid_price)
                 new_bid.save()
