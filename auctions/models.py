@@ -31,7 +31,7 @@ class AuctionListing(models.Model):
     price = models.DecimalField(max_digits=11, decimal_places=2, default =0.0)
     image = models.URLField(max_length=200, blank=False)
     published_date = models.DateTimeField(auto_now_add=True)
-
+    close_bid = models.BooleanField(default=False)
     def __str__(self):
         return f'{self.title}: by {self.seller}'
 

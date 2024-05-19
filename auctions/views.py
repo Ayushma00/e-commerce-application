@@ -43,22 +43,59 @@ def insert_listing(request):
 
 @login_required(login_url="login")
 def insert_bid(request):
-    bid_form = Bidform(request.POST)
-    print("Bid Form",bid_form)
-    if bid_form.is_valid():
+    # if "bid" in request.POST:
+    if request.method == "POST":
+        bid_form = Bidform(request.POST)
+        if bid_form.is_valid():
             bid_price = bid_form.cleaned_data["bid_price"]
+            auction_id = request.POST.get("auction_id")
+            print("Bid price", bid_price)
+            if bid_price <= 0:   
+                return render(request, "auctions/error_handling.html", {
+                "code": 400,
+                "message": "Bid price must be greater than 0"
+            })              
+            try:
+                auction = AuctionListing.objects.get(pk = auction_id)   
+                user = User.objects.get(id = request.user.id)
+            except AuctionListing.DoesNotExist:
+                return render(request, "auctions/error_handling.html", {
+                    "code": 404,
+                    "message": "Auction id doesn't exist"
+                })
+            if auction.seller == user:
+                return render (request, "auctions/error_handling.html", {
+                    "code": 404,
+                    "message": "Seller cannot bid"
+                })
+            
+            highest_bid = Bid.objects.filter(auction=auction).order_by('-bid_price').first()
+            if highest_bid is None or bid_price > highest_bid.bid_price:
+                # Add new bid to db
+                new_bid = Bid(auction=auction, user=user, bid_price=bid_price)
+                new_bid.save()
 
-            bid_item = Bid(
-                bidder = User.objects.get(pk = request.user.id),
-                bid_price = bid_price,
-                auction = AuctionListing.objects.get(pk = request.auction.id)
-            )
-            # auction = AuctionListing(user = request.User, **form.cleaned_data)
-            bid_item.save()
-            return HttpResponseRedirect(reverse('listing'+(request.auction.id)))
-    else:
-            render(request, "auctions/listing.html",{'form':bid_form})
-    return render(request, "auctions/listing.html",{'form':Bidform()})
+                # Update current highest price
+                auction.price = bid_price
+                auction.save()
+
+                return HttpResponseRedirect("listing/" + auction_id)
+            else:
+                return render(request, "auctions/error_handling.html", {
+                    "code": 400,
+                    "message": "Youre bid is too small"
+                })
+        else:
+            return render(request, "auctions/error_handling.html", {
+                "code": 400,
+                "message": "Form is invalid"
+            })
+    return render(request, "auctions/error_handling.html", {
+        "code": 405,
+        "message": "Method Not Allowed"
+    })   
+            
+
 
 
 @login_required(login_url="login")
@@ -103,41 +140,86 @@ def listing(request,id ):
             "code": 404,
             "message": "Auction id doesn't exist"
         })
-    print(current_item)
-    if request.user.is_authenticated:
-        watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id)).first()
-        print(watchlist_item)
-        if watchlist_item is not None:
-            on_watchlist = True
-            print("IN the watchlist")
+    print("THE CURRENT ITEM IS",current_item)
+    bid_amount = Bid.objects.filter(auction=id).count()
+    print("The bidamount is----",bid_amount)
+    print(Bid.objects.filter(auction=id).order_by('-bid_price'))
+    highest_bid = Bid.objects.filter(auction=id).order_by('-bid_price').first()
+    print("Highest amount---",highest_bid)
+    if current_item.close_bid:
+        if highest_bid is not None:
+            winner = highest_bid.user
+
+            # Diffrent view for winner, seller and other users
+            if request.user.id == current_item.seller.id:
+                return render(request, "auctions/sold.html", {
+                    "auction": current_item,
+                    "winner": winner
+                })
+            elif request.user.id == winner.id:
+                return render(request, "auctions/bought.html", {
+                    "auction": current_item
+                })
+        else:
+            if request.user.id == current_item.seller.id:
+                return render(request, "auctions/no_offer.html", {
+                    "auction": current_item
+                })
+
+        return HttpResponse("Error - auction no longer available")
+    else:
+        if request.user.is_authenticated:
+            watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id)).first()
+            print(watchlist_item)
+            if watchlist_item is not None:
+                on_watchlist = True
+                print("IN the watchlist")
+            else:
+                on_watchlist = False
+                print("Not in the watch list")
         else:
             on_watchlist = False
-            print("Not in the watch list")
-    else:
-        on_watchlist = False
-        print("not authenticate")
-    if "bid" in request.POST:
-        bid_form = Bidform(request.POST)
-        if bid_form.is_valid():
-                bid_price = bid_form.cleaned_data["bid_price"]
-                print("Bid price", bid_price)
-                if bid_price < 0:                 
-                    message = "You must enter a valid bid."
-                my_bid = Bid(user=request.user, auction=current_item, bid_price=bid_price) 
-                my_bid.save()
-                return render(request, "auctions/listing.html", {
-                "item": current_item,
-                "bidform": Bidform(),
-                "watchlist": on_watchlist
-            })                     
+            print("not authenticate")
+
+        if highest_bid is not None:
+                if highest_bid.user == request.user.id:
+                    bid_message = "Your bid is the highest bid"
+                else:
+                    bid_message = "Highest bid made by " + highest_bid.user.username
+        else:
+            bid_message = "No highest bid so far"
+
+        print("message",bid_message)
+        
+
+        return render(request,"auctions/listing.html",{
+            "item":current_item,
+            "on_watchlist": on_watchlist,
+            "bid_amount":bid_amount,
+            "bid_message":bid_message,
+            "bidform": Bidform(),
+        })
 
 
-    return render(request,"auctions/listing.html",{
-        "item":current_item,
-        "on_watchlist": on_watchlist,
-        "bidform": Bidform(),
-    })
+def close_bid(request, auction_id):
+    try:
+        auction = AuctionListing.objects.get(pk = auction_id)
+        print("inside close bid", auction)
+    except AuctionListing.DoesNotExist:
+        return render(request, "auctions/error_handling.html", {
+            "code": 404,
+            "message": "Auction id doesn't exist"
+        })
 
+    if request.method == "POST":
+        auction.close_bid = True
+        auction.save()
+    elif request.method =="GET":
+        return render(request, "auctions/error_handling.html", {
+            "code": 404,
+            "message": "Method not allowed"
+        })
+    return HttpResponseRedirect("/listing/" + auction_id)
 
 
 
