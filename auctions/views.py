@@ -5,10 +5,10 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 import json
-from .models import User, AuctionListing, Watchlist, Bid
+from .models import User, AuctionListing, Watchlist, Bid,Comments
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
-from .form import Auctionform, Bidform
+from .form import Auctionform, Bidform, Commentform
 
 @login_required(login_url='login')
 def create_listing(request):
@@ -97,7 +97,40 @@ def insert_bid(request):
     })   
             
 
+@login_required(login_url="login")
+def add_comments(request):
+    if request.method == "POST":
+        comment_form = Commentform(request.POST)
+        if comment_form.is_valid():
+            comments = comment_form.cleaned_data["comments"]
+            print(comments)
+            auction_id = request.POST.get("auction_id")
+            try:
+                auction = AuctionListing.objects.get(pk = auction_id)   
+                user = User.objects.get(id = request.user.id)
+            except AuctionListing.DoesNotExist:
+                return render(request, "auctions/error_handling.html", {
+                    "code": 404,
+                    "message": "Auction id doesn't exist"
+                })
+            comment = Comments(auction=auction, user=user, comments=comments)
+            comment.save()
 
+                # Update current highest price
+                # auction.price = bid_price
+                # auction.save()
+
+            return HttpResponseRedirect("listing/" + auction_id)
+        else:
+            return render(request, "auctions/error_handling.html", {
+                "code": 400,
+                "message": "Form is invalid"
+            })
+    return render(request, "auctions/error_handling.html", {
+        "code": 405,
+        "message": "Method Not Allowed"
+    }) 
+            
 
 @login_required(login_url="login")
 def watchlist(request):
@@ -146,7 +179,10 @@ def listing(request,id ):
     print("The bidamount is----",bid_amount)
     print(Bid.objects.filter(auction=id).order_by('-bid_price'))
     highest_bid = Bid.objects.filter(auction=id).order_by('-bid_price').first()
-    print("Highest amount---",highest_bid)
+    
+    comments = Comments.objects.filter(auction=id).order_by('-time')
+
+    print("THE COMMENTS ARE :",comments)
     if current_item.close_bid:
         if highest_bid is not None:
             winner = highest_bid.user
@@ -199,6 +235,8 @@ def listing(request,id ):
             "bid_amount":bid_amount,
             "bid_message":bid_message,
             "bidform": Bidform(),
+            "commentform" : Commentform(),
+            "comments" : comments
         })
 
 
@@ -222,6 +260,26 @@ def close_bid(request, auction_id):
         })
     return HttpResponseRedirect("/listing/" + auction_id)
 
+
+def category(request,category):
+
+    category_display = dict(AuctionListing.CATEGORY).get(category)
+    
+    # Check if the category code is valid
+    if category_display is None:
+        # If the category code is not recognized, return a 404 error
+        return render(request, '404.html')  # You can create a custom 404 page
+
+    # Filter listings based on the selected category
+    listings = AuctionListing.objects.filter(category=category,close_bid=False)
+
+
+    context = {
+        'listings': listings,
+        'category_display': category_display
+    }
+    return render(request, 'auctions/category.html', context)
+    
 
 
 @csrf_exempt
