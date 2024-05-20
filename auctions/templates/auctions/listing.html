@@ -1,74 +1,101 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<div class="col-md-5">
-    
-        <h3>{{ item.title }}</h3>
-        <p class="text-muted mb-1">{{ item.description }}</p>
-        {% if user.is_authenticated and user.id != auction.seller.id %}
-        <form action="{% url 'watchlist' %}" method="POST">
-            {% csrf_token %}
-            {% if on_watchlist %}
-                <input type="submit" class="btn btn-danger" value="Remove from watchlist">
-                <input type="hidden" name="on_watchlist" value="True">
-            {% else %}
-                <input type="submit" class="btn btn-success" value="Add to watchlist">
-                <input type="hidden" name="on_watchlist" value="False">
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <h3 class="mb-3">{{ item.title }}</h3>
+            
+            {% if user.is_authenticated and user.id != auction.seller.id %}
+            <form action="{% url 'watchlist' %}" method="POST" class="mb-3">
+                {% csrf_token %}
+                {% if on_watchlist %}
+                    <input type="submit" class="btn btn-danger" value="Remove from watchlist">
+                    <input type="hidden" name="on_watchlist" value="True">
+                {% else %}
+                    <input type="submit" class="btn btn-success" value="Add to watchlist">
+                    <input type="hidden" name="on_watchlist" value="False">
+                {% endif %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" name="auction_id" value="{{ item.id }}"> 
+            </form>
             {% endif %}
-   
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <input type="hidden" name="auction_id" value="{{ item.id }}"> 
-        </form>
-        {% endif %}
+            
+            <div class="row">
+                <!-- Image Column -->
+                <div class="col-md-6 mb-3">
+                    <img src="{{ item.image }}" class="img-fluid rounded pb-2" style="max-height: 300px; object-fit: contain;">
+                </div>
 
+                <!-- Details Column -->
+                <div class="col-md-6 mb-3">
+                    <div class="project-info-box">
+                        <p class="pt-3 pb-2 border-bottom"><strong>Author:</strong> {{ item.seller }}</p>
+                        {% if item.price %}
+                            <p class="pt-1 pb-2 border-bottom"><strong>Price:</strong> ${{ item.price }}</p>
+                        {% else %}
+                            <p class="pt-1 pb-2 border-bottom"><strong>Price:</strong> Not Specified</p>
+                        {% endif %}
+                        <p class="pt-1 pb-2 border-bottom"><strong>Created at:</strong> {{ item.published_date }}</p>
+                        {% if item.category %}
+                            <p class="pt-1 pb-2 border-bottom"><strong>Category:</strong> {{ item.get_category_display | title }}</p>
+                        {% else %}
+                            <p class="pt-1 pb-2 border-bottom"><strong>Category:</strong> Not Listed.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
+            <div class="list-group-item text-muted mb-3">
+                {% if bid_amount != 0 %}
+                    <small>{{ bid_amount }} bid(s) so far. {{ bid_message }}</small>
+                {% else %}
+                    <small>No bids so far.</small>
+                {% endif %}
+            </div>
 
-    
-    <div class="project-info-box">
-        <p class="pt-4 pb-2 border-bottom"><b>Author: </b> {{ item.seller }}</p>
-        <p class="pt-1 pb-2 border-bottom "><b>Current Bid: </b><span class="text-primary"></p>
-            {% if item.price %}
-                <p class="pt-1 pb-2 border-bottom"><b>Price: </b>${{ item.price }}
-                </p>
-            {% else %}
-                <p class="pt-1 pb-2 border-bottom"><b>Price: </b>Not Specified</p>
+            {% if user.id == item.seller.id %}
+            <form action="{% url 'close_bid' auction_id=item.id %}" method="POST" class="mb-3">
+                {% csrf_token %}
+                <input type="submit" class="btn btn-danger" value="Close auction" name="close_auction">
+            </form>
             {% endif %}
-        <p class="pt-1 pb-2 border-bottom"><b>Created at: </b> {{ item.published_date }}</p>
-        
-        {% if item.category %}
-            <p class="pt-1 pb-2 border-bottom"><b>Category: </b> {{ item.get_category_display | title }}</p>
-        {% else %}
-            <p class="pt-1 pb-2 border-bottom"><b>Category: </b> Not Listed.</p>
-        {% endif %}
-        <div class="col-md-7">
-            <img src="{{ item.image }}" class="rounded pb-2"
-                 style="width: 100%; max-height: 500px; object-fit: contain;">
+
+            {% if user.is_authenticated and user.id != item.seller.id %}
+            <form action="{% url 'bid' %}" method="post" class="mb-3">
+                {% csrf_token %}
+                {{ bidform.as_p }}
+                <input class="btn btn-primary" type="submit" name="bid" value="Place Your Bid">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <input type="hidden" name="auction_id" value="{{ item.id }}">
+            </form>
+            {% endif %}
+
+            <h4>Details</h4>
+            <p class="text-muted mb-3">{{ item.description }}</p>
+
+            {% if user.is_authenticated %}
+            <div class="comment-section mb-3">
+                <h5>Write your Comments</h5>
+                <form action="{% url 'comments' %}" method="post" class="mb-3">
+                    {% csrf_token %}
+                    {{ commentform.as_p }}
+                    <input class="btn btn-primary" type="submit" name="comment" value="Comment">
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <input type="hidden" name="auction_id" value="{{ item.id }}">
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="comment-list list-group mb-3">
+                <h5>Reviews and Comments</h5>
+                {% for comment in comments %}
+                <div class="list-group-item">
+                    <p><strong>{{ comment.user }}:</strong> {{ comment.comments }}</p> 
+                </div>
+                {% endfor %}
+            </div>
         </div>
-
-{% comment %} BID {% endcomment %}
-<div class="list-group-item text-muted">
-    {% if bid_amount != 0 %}
-        <small>{{ bid_amount }} bid(s) so far. {{ bid_message }}</small>
-    {% else %}
-        <small>No bids so far.</small>
-    {% endif %}
-</div>
-{% if user.id == item.seller.id %}
-        <form action="{% url 'close_bid' auction_id=item.id %}" method="POST">
-            {% csrf_token %}
-            <input type="submit" class="btn btn-danger" value="Close auction" name="close_auction">
-        </form>
-    {% endif %}
-{% if user.is_authenticated and user.id != item.seller.id %}
-<form action="{% url 'bid'%}" method="post">
-    {% csrf_token %}
-    {{bidform.as_p}}
-    <input class="btn btn-primary" type="submit" name="bid" value="Place Your Bid">
-    <input type="hidden" name="next" value="{{ request.path }}">
-    <input type="hidden" name="auction_id" value="{{ item.id }}">
-</form>
-
-{% endif %}
-
     </div>
+</div>
 {% endblock %}

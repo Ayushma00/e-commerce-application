@@ -1,6 +1,12 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
- {{code}} <h1> Error </h1>
- {{message}}
+<div class="container text-center mt-5">
+    <div class="alert alert-danger" role="alert">
+        <h1 class="display-4">⚠️ Error</h1>
+        <p class="lead mt-4">{{ code }}</p>
+        <p>{{ message }}</p>
+        <a href="{% url 'index' %}" class="btn btn-primary mt-4">Go to Home Page</a>
+    </div>
+</div>
 {% endblock %}

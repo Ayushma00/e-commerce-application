@@ -1,7 +1,12 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<h1> Congratulation !!! </h1>
-<h3> Your item {{auction.title}} is sold for price {{ auction.price}}</h3>
-<p> Contact to {{winner.username}} to finalize the sell</p>
-{%endblock%}
+<div class="container text-center mt-5">
+    <div class="alert alert-success" role="alert">
+        <h1 class="display-4">🎉 Congratulations! 🎉</h1>
+        <h3 class="mt-4">Your item <strong>{{ auction.title }}</strong> is sold for <strong>${{ auction.price }}</strong>!</h3>
+        <p class="lead mt-4">📞 Contact <strong>{{ winner.username }}</strong> to finalize the sale.</p>
+        <a href="{% url 'index' %}" class="btn btn-primary mt-4">Go to Home Page</a>
+    </div>
+</div>
+{% endblock %}

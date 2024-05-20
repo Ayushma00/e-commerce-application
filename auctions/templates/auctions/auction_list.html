@@ -1,35 +1,20 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-
-    <h2>Create Listing</h2>
-    <form action="{% url 'insert_listing' %}" method="post">
-    {% csrf_token %}
-    {{form.as_p}}
-    {% comment %} <div class="form-group mb-3">
-        <label for="id_title">{{ form.title.label }}:</label>
-        {{ form.title }}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Create Listing</h2>
+                    <form action="{% url 'insert_listing' %}" method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button class="btn btn-primary btn-block mt-4" type="submit">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group mb-3">
-        <label for="id_description">{{ form.description.label }}:</label>
-        {{ form.description }}
-    </div>
-    <div class="form-group mb-3">
-        <label for="id_category">{{ form.category.label }}:</label>
-        {{ form.category }}
-    </div>
-    <div class="form-group mb-3">
-        <label for="id_image_url">{{ form.image.label }}:</label>
-        {{ form.image}}
-    </div>
-    <div class="form-group mb-3">
-        <label for="id_price">{{ form.price.label }}:</label>
-        {{ form.price }}
-    </div>
-    <button type="submit" class="btn btn-primary btn-new-blue" aria-label="submit">Submit</button> {% endcomment %}
-    <input class="btn btn-primary" type="submit" value="Create">
-    
-</form> 
-</div> 
-
+</div>
 {% endblock %}

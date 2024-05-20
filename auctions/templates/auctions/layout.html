@@ -1,5 +1,6 @@
 {% load static %}
 
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -23,6 +24,9 @@
             {% if user.is_authenticated %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'category' %}">Category</a>
             </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'insert_listing' %}">Create Listing</a>
