@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -49,7 +50,6 @@ def insert_bid(request):
         if bid_form.is_valid():
             bid_price = bid_form.cleaned_data["bid_price"]
             auction_id = request.POST.get("auction_id")
-            print("Bid price", bid_price)
             if bid_price <= 0:   
                 return render(request, "auctions/error_handling.html", {
                 "code": 400,
@@ -103,7 +103,6 @@ def add_comments(request):
         comment_form = Commentform(request.POST)
         if comment_form.is_valid():
             comments = comment_form.cleaned_data["comments"]
-            print(comments)
             auction_id = request.POST.get("auction_id")
             try:
                 auction = AuctionListing.objects.get(pk = auction_id)   
@@ -174,15 +173,11 @@ def listing(request,id ):
             "code": 404,
             "message": "Auction id doesn't exist"
         })
-    print("THE CURRENT ITEM IS",current_item)
     bid_amount = Bid.objects.filter(auction=id).count()
-    print("The bidamount is----",bid_amount)
-    print(Bid.objects.filter(auction=id).order_by('-bid_price'))
     highest_bid = Bid.objects.filter(auction=id).order_by('-bid_price').first()
     
     comments = Comments.objects.filter(auction=id).order_by('-time')
 
-    print("THE COMMENTS ARE :",comments)
     if current_item.close_bid:
         if highest_bid is not None:
             winner = highest_bid.user
@@ -207,16 +202,16 @@ def listing(request,id ):
     else:
         if request.user.is_authenticated:
             watchlist_item=Watchlist.objects.filter(auction = id,seller = User.objects.get(id = request.user.id)).first()
-            print(watchlist_item)
+            
             if watchlist_item is not None:
                 on_watchlist = True
-                print("IN the watchlist")
+                
             else:
                 on_watchlist = False
-                print("Not in the watch list")
+                
         else:
             on_watchlist = False
-            print("not authenticate")
+            
 
         if highest_bid is not None:
                 if highest_bid.user == request.user.id:
@@ -226,7 +221,7 @@ def listing(request,id ):
         else:
             bid_message = "No highest bid so far"
 
-        print("message",bid_message)
+        
         
 
         return render(request,"auctions/listing.html",{
@@ -243,7 +238,6 @@ def listing(request,id ):
 def close_bid(request, auction_id):
     try:
         auction = AuctionListing.objects.get(pk = auction_id)
-        print("inside close bid", auction)
     except AuctionListing.DoesNotExist:
         return render(request, "auctions/error_handling.html", {
             "code": 404,
@@ -264,11 +258,11 @@ def close_bid(request, auction_id):
 def category(request,category):
 
     category_display = dict(AuctionListing.CATEGORY).get(category)
-    
+    print(category_display)
     # Check if the category code is valid
     if category_display is None:
         # If the category code is not recognized, return a 404 error
-        return render(request, '404.html')  # You can create a custom 404 page
+        return Http404("Category not found")  # You can create a custom 404 page
 
     # Filter listings based on the selected category
     listings = AuctionListing.objects.filter(category=category,close_bid=False)
@@ -287,7 +281,6 @@ def auction_list (request):
     if request.method!="POST":
         return JsonResponse({"error": "POST request required"},status=400)
     data = json.loads(request.body)
-    print(data)
 
 def login_view(request):
     if request.method == "POST":
