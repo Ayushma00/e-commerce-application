@@ -25,9 +25,11 @@
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'category' %}">Category</a>
-            </li>
+            {% for code, name in categories %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'category' code %}">{{ name }}</a>
+                </li>
+            {% endfor %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'insert_listing' %}">Create Listing</a>
                 </li>
