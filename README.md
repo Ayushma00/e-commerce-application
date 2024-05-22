@@ -4,6 +4,12 @@
 
 This project is an e-commerce application for an auction site, developed as part of the CS50 course. Users can create auction listings, place bids, comment on listings, and manage a watchlist of interesting items. The site features dynamic listings, user authentication, and category-based item browsing.
 
+## Video Demonstration
+
+Watch the video demonstration of this project on YouTube:
+
+[![CS50 Project: Building an E-commerce Auction Site with Django](https://img.youtube.com/vi/x6R0pzdiwlw/0.jpg)](https://youtu.be/x6R0pzdiwlw)
+
 ## Features
 
 ### Models
@@ -139,6 +145,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
 - Django Documentation: [https://docs.djangoproject.com/](https://docs.djangoproject.com/)
 - Bootstrap for styling: [https://getbootstrap.com/](https://getbootstrap.com/)
 
-## Contact
 
-For any inquiries or feedback, please contact [your-email@example.com].
+
+
+
